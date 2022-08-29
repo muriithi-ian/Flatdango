@@ -45,6 +45,9 @@ function renderNav(movies) {
 		const navFilmTitle = document.createElement("li");
 		navFilmTitle.textContent = movie.title;
 		navFilmTitle.classList.add("film", "item");
+        navFilmTitle.addEventListener("click", () => {
+					fetchData(movie.id).then((movie) => renderMovie(movie));
+				});
 		ticketsRemaining < 1 ? navFilmTitle.classList.add("sold-out") : null;
 		navFilms.appendChild(navFilmTitle);
 	});
