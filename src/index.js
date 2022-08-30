@@ -1,7 +1,7 @@
 // Your code here
 document.addEventListener("DOMContentLoaded", () => {
-	fetchData(1).then((movie) => renderMovie(movie));
 	fetchData().then((movies) => renderNav(movies));
+	fetchData(1).then((movie) => renderMovie(movie));
 });
 
 function fetchData(id = null) {
@@ -12,6 +12,7 @@ function fetchData(id = null) {
 		.then((res) => res.json())
 		.catch((err) => console.log(err));
 }
+let globalTicketsRemaining = [];
 
 function renderMovie(movie) {
 	const moviePoster = document.querySelector("#poster");
@@ -27,10 +28,14 @@ function renderMovie(movie) {
 	movieRuntime.textContent = `${movie.runtime} minutes`;
 	filmInfo.textContent = movie.description;
 	movieShowtime.textContent = movie.showtime;
+	buyButton.textContent = "Buy Ticket";
+	let ticketsRemaining = movie.capacity - movie.tickets_sold;
+	if (globalTicketsRemaining.includes(movie.title)) {
+		buyButton.textContent = "Sold Out";
+		ticketsRemaining = 0;
+	}
 
-	const ticketsRemaining = movie.capacity - movie.tickets_sold;
-	ticketNumber.textContent =
-		ticketsRemaining >= 0 ? ticketsRemaining : "Sold Out";
+	ticketNumber.textContent = ticketsRemaining;
 }
 
 function renderNav(movies) {
@@ -44,11 +49,41 @@ function renderNav(movies) {
 		const ticketsRemaining = movie.capacity - movie.tickets_sold;
 		const navFilmTitle = document.createElement("li");
 		navFilmTitle.textContent = movie.title;
+		navFilmTitle.setAttribute("id", movie.id);
 		navFilmTitle.classList.add("film", "item");
-        navFilmTitle.addEventListener("click", () => {
-					fetchData(movie.id).then((movie) => renderMovie(movie));
-				});
+		navFilmTitle.addEventListener("click", () => {
+			// debugger;
+			fetchData(movie.id).then((movie) => renderMovie(movie));
+		});
 		ticketsRemaining < 1 ? navFilmTitle.classList.add("sold-out") : null;
 		navFilms.appendChild(navFilmTitle);
 	});
 }
+
+const buyButton = document.querySelector("#buy-ticket");
+
+buyButton.addEventListener("click", () => {
+	const ticketNumber = document.querySelector("#ticket-num");
+	let ticketsRemaining = parseInt(ticketNumber.textContent);
+
+	if (ticketsRemaining > 0) ticketsRemaining -= 1;
+	console.log("t0", ticketsRemaining);
+	if (ticketsRemaining == 0) {
+		// buyButton.classList.add("disabled");
+		buyButton.textContent = "Sold Out";
+		buyButton.removeEventListener("click", () => {});
+
+		const movieTitle = document.querySelector("#title");
+		const navList = document.querySelectorAll("li");
+
+		console.log(navList);
+		globalTicketsRemaining.push(movieTitle.textContent);
+		navList.forEach((item) => {
+			item.textContent === movieTitle.textContent
+				? item.classList.add("sold-out")
+				: null;
+		});
+	}
+
+	return (ticketNumber.textContent = ticketsRemaining);
+});
